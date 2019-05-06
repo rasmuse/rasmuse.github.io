@@ -249,7 +249,7 @@ workflow w {
 <h3>Why I'm not using WDL</h3>
 <p>Almost only for one reason: It is slow. WDL is designed to run big bioinformatics pipelines on clusters, and therefore the execution engine Cromwell has not been optimized to run small laptop-scale workflows fast. Executing the workflow above with the <a href="https://github.com/broadinstitute/cromwell/releases/tag/40">latest Cromwell engine</a> takes about 30 seconds on my laptop. By comparison, I timed the Makefile execution to 6 milliseconds ;)</p>
 <h1>Final words</h1>
-<p>If you read this text I hope you found it interesting. I wrote it mostly to clarify my own thinking. If you had the patience to read <em>and</em> you found it interesting, then probably I would find it interesting to talk to you about file names, or whatever.</p>
+<p>If you read through all these ramblings I hope you found it interesting. I wrote it mostly to clarify my own thinking. If you had the patience to read <em>and</em> you found it interesting, then probably I would find it interesting to talk to you about file names, or whatever. Pop me an email on <a href="mailto:workflows [at] rasmuseinarsson.se">workflows [at] rasmuseinarsson.se</a>.</p>
 <p>If there was a lightweight execution engine for local laptop-scale jobs I would definitely use WDL, because I think they have done many things right (not just the file naming business). I have been close enough to try to build a simple execution engine myself.</p>
 <p>Sometimes I also put a day or two into hacking on another tool with a friend (we'll let you know if it gets anywhere near useful).</p>
 <p>Now I spent way too much complaining about all this. I have to get back to renaming file outputs.</p>
