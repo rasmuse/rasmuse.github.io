@@ -199,15 +199,15 @@
 <p>To sum up the ramblings so far, I have concluded three things:</p>
 <ol>
 <li>Exploratory data analysis workflows tend to consist of “atomic” operations that create files with intermediate and final results. Since the interconnections between these operations change all the time, the output file names have to be renamed too.</li>
-<li>In particular, much of the naming issues arise when nesting/mapping operations over sets of input data files, parameters, etc. In the end, I am often interested in output file sets that are best defined as a mapping of some set of inputs. Therefore it is very useful if file outputs of nested operations can be automatically named in a meaningful way.</li>
+<li>In particular, much of the naming issues arise when nesting/mapping operations over sets of input data files, parameters, etc. In the end, I am often interested in output file sets that are best defined as a mapping from some set of inputs. Therefore it is very useful if file outputs of such mappings or nested operations can be automatically named in a meaningful way.</li>
 <li>Workflow tools like GNU Make and its many descendants (pun intended) are a natural and useful choice to define the plumbing between separate tasks.</li>
 </ol>
 <p>My two proposals are therefore the following:</p>
 <ol>
-<li>Let's abstract away as much as possible of the renaming of files that is needed to connect different tasks to each other.</li>
-<li>Let nesting/mapping operations be explicitly represented in the workflow languages we use to do the plumbing. Then a useful naming of output files can be automated and our limited time and mental capacity be directed to more interesting problems than naming files.</li>
+<li>Let's use workflow systems to abstract away as much as possible of the renaming of files that is needed to connect different tasks to each other.</li>
+<li>Let nesting/mapping operations be explicitly represented in workflow languages. Then a useful naming of output files can be automated and our limited time and mental capacity be directed to more interesting problems than naming files.</li>
 </ol>
-<h2>GNU Make and siblings share a common namespace</h2>
+<h2>GNU Make and siblings use a single namespace</h2>
 <p>GNU Make is useful for automating workflows. However, it is not useful for automating workflows that are deeply nested and rapidly changing. <strong>Since all the targets are defined in the same namespace (the same output directory, concretely), they have to be uniquely named, and this has to be done manually.</strong> As far as I understand, the same goes for popular tools like Luigi, snakemake, and doit (but please correct me if I am wrong).</p>
 <p>I still use GNU Make though, mainly because it is so clear and direct, easy to get started with, and because it runs really fast.</p>
 <h2>WDL creates separate namespaces</h2>
@@ -222,7 +222,7 @@
 </pre></div>
 
 
-<p>When <code>f</code> is called here, the arguments are assigned the (temporary) names <code>x</code> and <code>y</code> and inside the function body that is all we need. The function <code>f</code> will never know that a and b were loaded from the same function. In a similar way, a WDL task is like a function that also abstracts away input file names, something like this:</p>
+<p>When <code>f</code> is called here, the arguments are assigned the (temporary) names <code>x</code> and <code>y</code> and inside the function body that is all we need. The function <code>f</code> will never know that <code>a</code> and <code>b</code> were loaded from the same function. In a similar way, a WDL task is like a function that also abstracts away input file names, something like this:</p>
 <div class="highlight"><pre><span></span>task load_data {
     command { echo foo &gt; bar}
     output { File out = &quot;bar&quot; }
