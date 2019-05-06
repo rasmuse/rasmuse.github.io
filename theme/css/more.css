@@ -17,9 +17,27 @@ h4 { font-size: 1.5rem; line-height: 1.6;  letter-spacing: 0; }
   h4 { font-size: 1.5rem; }
 }
 
+.li {
+	margin-bottom: 0.5rem;
+}
 
-.container {
-	max-width: 700px;
+div.summary {
+	border-left: 6px solid #d5ac20;
+	padding-left: 1rem;
+	margin: 2rem 0;
+}
+
+div.summary p:last-child {
+	margin-bottom: 0;
+}
+
+
+#content main > * {
+	max-width: 730px;
+}
+
+#content main > .highlight {
+	max-width: 100%;
 }
 
 body {

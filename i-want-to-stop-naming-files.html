@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Rasmus Einarsson - I want to stop naming files</title>
+    <meta charset="utf-8" />
+    <link href="https://rasmuse.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Rasmus Einarsson Full Atom Feed" />
+    <link href="https://rasmuse.github.io/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate" title="Rasmus Einarsson Categories Atom Feed" />
+
+
+
+
+<meta name="tags" content="workflows" />
+<meta name="tags" content="WDL" />
+<meta name="tags" content="CWL" />
+
+
+<!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="https://fonts.googleapis.com/css?family=Merriweather" rel="stylesheet">
+
+<!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/normalize.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/skeleton.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/pygment.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/more.css">
+
+<!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+
+<body id="index" class="home">
+
+    <header id="banner">
+        <div class="container">
+            <h1><a href="https://rasmuse.github.io/">Rasmus Einarsson <strong></strong></a></h1>
+        </div>
+    </header>
+
+    <nav id="menu">
+        <div class="container">
+            <ul>
+                <li><a href="https://rasmuse.github.io/">Home</a></li>
+                <li><a href="https://rasmuse.github.io/pages/about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+<article id="content">
+  <header>
+    <h1 id="article-title">I want to stop naming files</h1>
+
+    
+    <time class="published" datetime="2019-05-06T00:00:00+02:00">
+      6 May 2019
+    </time>
+  </header>
+
+
+  <main class="entry-content">
+    <div class="summary">
+<p>
+    The tl;dr of this text is that I spend too much time and energy managing file outputs from computational workflows. I feel like Winnie-the-Pooh being dragged down the stairs, “there must be a better way; if only he could stop bumping for a moment to think of it.”
+</p>
+
+<p>
+    In the ramblings that follow I demonstrate a common source of file naming issues and try to show how it relates to popular workflow tools from GNU Make via Luigi to CWL and WDL. I distinguish two categories of tools: Those where all outputs share the same namespace, and those where they don't. The latter are potentially much more useful because they enable more automation of file naming.
+</p>
+</div>
+
+<p><img src="https://rasmuse.github.io/images/edward-bear-bump-bump.jpg" title="“Here is Edward Bear, coming downstairs now, bump, bump, bump, on the back of his head, behind Christopher Robin. It is, as far as he knows, the only way of coming downstairs, but sometimes he feels that there really is another way, if only he could stop bumping for a moment and think of it. And then he feels that perhaps there isn't.”"></p>
+<h1>How the typical problem arises</h1>
+<p>In my research I often find myself in the following situation. I have produced a bunch of Python scripts or specialized command-line tools to transform some input files to an output file. The relevant part may look like this:</p>
+<div class="highlight"><pre><span></span><span class="n">indata</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">()</span>
+
+<span class="n">outdata</span> <span class="o">=</span> <span class="n">do_analysis</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">generate_fig</span><span class="p">(</span><span class="n">outdata</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;figure.png&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Note that the implementation is packed with magic constants:</p>
+<ul>
+<li>The <code>load_data()</code> function takes no parameters so it must contain some file paths or similar.</li>
+<li><code>do_analysis(indata)</code> may also have hard-coded parameters to algorithms, etc.</li>
+<li><code>figure.png</code> is a great name for a figure, as long as you only have one...</li>
+</ul>
+<p>But I am not worried about any of this, because my wonderful script produces the file <code>figure.png</code> which looks great, and by the way it's Friday afternoon and we have more important things to do than clean up this code.</p>
+<h2>Then it starts growing</h2>
+<p>So far so good. The problem arises on Monday morning when I return to work and realize a problem with last Friday's decision on the parameter value <code>k = 3</code>, hidden deep inside <code>do_analysis()</code>. I need to check what happens with <code>k = 4</code>. I am not stupid, so I realize I will want to play with different values of <code>k</code> and I separate it out as a function argument. The revised script:</p>
+<div class="highlight"><pre><span></span><span class="n">k</span> <span class="o">=</span> <span class="mi">4</span>
+
+<span class="n">indata</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">()</span>
+
+<span class="n">outdata</span> <span class="o">=</span> <span class="n">do_analysis</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">generate_fig</span><span class="p">(</span><span class="n">outdata</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;figure-k_{k}.png&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>OK, excellent, I re-run the script and look at my new <code>figure-k_4.png</code> which looks even more interesting. Maybe I should try this for a few more values, and by the way, I also want to dump the outdata to a file for later inspection.</p>
+<div class="highlight"><pre><span></span><span class="n">ks</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">26</span><span class="p">]</span>
+
+<span class="n">indata</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">()</span>
+
+<span class="n">outdata</span> <span class="o">=</span> <span class="n">do_analysis</span><span class="p">(</span><span class="n">indata</span><span class="p">)</span>
+<span class="n">outdata</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;outdata.h5&#39;</span><span class="p">,</span> <span class="s1">&#39;df&#39;</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">:</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">generate_fig</span><span class="p">(</span><span class="n">outdata</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;figure-k_{k}.png&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Nice! Now another issue is that I want to switch out part of the indata, so I change the script a bit more and also organize the outputs into different directories:</p>
+<div class="highlight"><pre><span></span><span class="c1"># Parameter sets</span>
+
+<span class="n">ks</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">26</span><span class="p">]</span>
+
+<span class="n">eurostat_tables</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;apro_cpshr&#39;</span><span class="p">:</span> <span class="s1">&#39;2019-04-12 23:00:00&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;apro_cpnhr_h&#39;</span><span class="p">:</span> <span class="s1">&#39;2019-03-21 23:00:00&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Actual work</span>
+
+<span class="n">common_data</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">version</span> <span class="ow">in</span> <span class="n">eurostat_tables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">outdir</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{name}-{version}&#39;</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="n">eurostat_data</span> <span class="o">=</span> <span class="n">eust</span><span class="o">.</span><span class="n">read_table_data</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+
+    <span class="n">outdata</span> <span class="o">=</span> <span class="n">do_analysis</span><span class="p">(</span><span class="n">common_data</span><span class="p">,</span> <span class="n">eurostat_data</span><span class="p">)</span>
+    <span class="n">outdata</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="s1">&#39;outdata.h5&#39;</span><span class="p">),</span> <span class="s1">&#39;df&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">generate_fig</span><span class="p">(</span><span class="n">outdata</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outdir</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;figure-k_{k}.png&#39;</span><span class="p">))</span>
+</pre></div>
+
+
+<h2>Where it always ends up</h2>
+<p>OK, so you see where this is going. The list of parameters grows, and the naming schemes for the directories and files gets ever more complicated. One parameter added to the soup, another removed. Soon enough I have created myself a <code>Makefile</code> (<a href="https://github.com/rasmuse/biogas-residues-manure/blob/master/Makefile">see real-world example here</a>) to keep track of all the outputs.</p>
+<p>Note the <code>os.makedirs(outdir, exist_ok=True)</code> above. I'm not sure how many times I have had a 10-minute calculation crash because of a <code>FileNotFoundError</code> or a <code>FileExistsError</code> raised when dumping the outdata.</p>
+<p>And let's not even talk about the naming schemes of the cache files I start to keep for some of the intermediate operations. Somehow these projects always evolve into a living hell of subdirectory creation, encoding of parameter values in file names, and manual cache invalidation. Oh, the cache invalidation.</p>
+<p>Some days I literally think I might go crazy.</p>
+<h1>Looking closer: What is the problem really?</h1>
+<p>As a result I have spent a disturbing amount of time thinking of solutions to the <a href="https://xkcd.com/974/">General Problem</a> of running computational workflows and managing the outputs. But before diving into the solutions part, I want to elaborate a little bit on the problem.</p>
+<h2>Thinking ahead is not an option</h2>
+<p>One important insight for me is that these exploratory data analysis tasks <em>by nature grow in hard-to-predict ways</em>. Separating out all the possible parameters from the start and naming the file outputs accordingly is not realistic since I do not even know what they are. I could just as well have realized that the parameter <code>k</code> was not important, but maybe <code>sigma_x</code> is? So I constantly change the scripts to accommodate the most recent idea.</p>
+<p>Thus, there is no Grand Solution to the issue of changing specifications. The changing definition of the problem is part of the process. The set of parameter values will change: should I sweep <code>k</code> or <code>sigma_x</code> or both? The plumbing between these operations will change: should I do this data cleaning operation before or after the data subset selection?</p>
+<h2>A dependency graph of side effects</h2>
+<p>Another part of the problem, and maybe of the solution as we shall see, is that data analysis tools rely heavily on side effects (files, in this case), while the overall structure of the workflow can be modelled in a more abstract, functional way.</p>
+<p>File outputs are essential to connect different tools like Python, R, bash, and various command line tools. They are also useful because we can inspect and visualize outputs using Excel, <a href="https://sqlitebrowser.org">SQLite browser</a>, image viewers, etc. These tools are and will remain the core of laptop-scale data processing for the forseeable future.</p>
+<p>By contrast, the plumbing between tasks lends itself very well to more abstract, functional thinking: the output set <em>y</em> is obtained by mapping function <em>f</em> over the input set <em>x</em>, the output <em>z</em> is an aggregation of the whole set <em>x</em>, etc. It is natural to see a data analysis workflow as a directed acyclical graph of operations. Although each one of those steps is actually a mess of imperative programs, side effects in file systems, etc, the overarching structure is easiest to express in functional terms.</p>
+<p>Let's look again at the example but without all the file handling stuff:</p>
+<div class="highlight"><pre><span></span><span class="n">common_data</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">version</span> <span class="ow">in</span> <span class="n">eurostat_tables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">eurostat_data</span> <span class="o">=</span> <span class="n">eust</span><span class="o">.</span><span class="n">read_table_data</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="n">outdata</span> <span class="o">=</span> <span class="n">do_analysis</span><span class="p">(</span><span class="n">common_data</span><span class="p">,</span> <span class="n">eurostat_data</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">:</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">generate_fig</span><span class="p">(</span><span class="n">outdata</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Forget for a moment that these are nested loops, and see them more abstractly as nested mappings of operations:</p>
+<ul>
+<li><code>common_data</code> is defined at the root. There is only one of it.</li>
+<li><code>eurostat_data</code> and <code>outdata</code> both have one item for each entry in <code>eurostat_tables</code>. They are are mappings from the set of items in<code>eurostat_tables</code>.</li>
+<li><code>fig</code> is nested below <code>outdata</code>. It can be seen as a mapping from the product (<code>eurostat_tables</code> × <code>ks</code>), or if you prefer as a sort of two-dimensional object, a set of sets of output files.</li>
+</ul>
+<p>(By the way, what I have not shown here is that many workflows involve aggregating functions, i.e., operations that reduce the dimension of something. In some cases these aggregations can be formulated as <a href="https://en.wikipedia.org/wiki/Fold_(higher-order_function)">fold operations</a>, but they are often more general, i.e., potentially <a href="https://en.wikipedia.org/wiki/Aggregate_function">require access to the whole set of inputs</a>. This is an important part of the graph structure too, but let's leave it for now.)</p>
+<p><strong>A main reason I am constantly dealing with file naming issues is that the tasks are nested inside one another.</strong> In the first step of the example above we went from having one <code>figure.png</code>. But very soon we had to produce a whole range of similar figures named <code>{name}-{version}/figure-k_{k}.png</code>. The clean and beautiful world of workflow graphs collides with the ugly truth of side effects like output files.</p>
+<h3>Side note: Drawing the line between tasks and the graph structure</h3>
+<p>This section is somewhat a side-note, but I find it relevant to elaborate a little on this proposed dichotomy.</p>
+<p>I'm not proposing there is a strict or clear line to be drawn between the imperative-style operations and the functional-style structure of a computational workflow. My point is that in every data analysis project I have ever done, it has been natural to think of some operations as atomic, i.e., as isolated and irreducible in some sense, for example:</p>
+<ul>
+<li>Join these two tables and dump to a csv file.</li>
+<li>Download this URL and save to a certain file name.</li>
+<li>Calculate the mean pixel value of this GIS raster dataset in each of these geographic regions.</li>
+</ul>
+<p>I am not even going to try to define what makes an operation “atomic”. I don't think there is a useful definition.</p>
+<p>But many seem to share the intuition that some operations can and should be bundled into logical units of work. Just look at the examples from some popular workflow tools (<a href="http://www.commonwl.org/user_guide/">CWL</a>, <a href="https://software.broadinstitute.org/wdl/documentation/quickstart">WDL</a>, <a href="https://airflow.apache.org/">Apache Airflow</a>, <a href="https://luigi.readthedocs.io/en/stable/tasks.html">Luigi</a>, <a href="https://snakemake.readthedocs.io/en/stable/tutorial/basics.html">Snakemake</a>, <a href="http://pydoit.org/">doit</a>, and many others). They all have some notion of a Task as the fundamental unit of work. A Task can encapsulate more or less any program execution, while the encapsulating workflow languages typically only allow directed acyclic graphs.</p>
+<h1>The solution: namespaces for files (a.k.a directories)</h1>
+<p>Therefore, I think <strong>the solution is to provide a nice and simple way to do the plumbing between Python functions, R scripts, bash scripts, whatever, that provides some abstraction from the awful truth that intermediate file outputs have to be stored somewhere.</strong></p>
+<p>To sum up the ramblings so far, I have concluded three things:</p>
+<ol>
+<li>Exploratory data analysis workflows tend to consist of “atomic” operations that create files with intermediate and final results. Since the interconnections between these operations change all the time, the output file names have to be renamed too.</li>
+<li>In particular, much of the naming issues arise when nesting/mapping operations over sets of input data files, parameters, etc. In the end, I am often interested in output file sets that are best defined as a mapping of some set of inputs. Therefore it is very useful if file outputs of nested operations can be automatically named in a meaningful way.</li>
+<li>Workflow tools like GNU Make and its many descendants (pun intended) are a natural and useful choice to define the plumbing between separate tasks.</li>
+</ol>
+<p>My two proposals are therefore the following:</p>
+<ol>
+<li>Let's abstract away as much as possible of the renaming of files that is needed to connect different tasks to each other.</li>
+<li>Let nesting/mapping operations be explicitly represented in the workflow languages we use to do the plumbing. Then a useful naming of output files can be automated and our limited time and mental capacity be directed to more interesting problems than naming files.</li>
+</ol>
+<h2>GNU Make and siblings share a common namespace</h2>
+<p>GNU Make is useful for automating workflows. However, it is not useful for automating workflows that are deeply nested and rapidly changing. <strong>Since all the targets are defined in the same namespace (the same output directory, concretely), they have to be uniquely named, and this has to be done manually.</strong> As far as I understand, the same goes for popular tools like Luigi, snakemake, and doit (but please correct me if I am wrong).</p>
+<p>I still use GNU Make though, mainly because it is so clear and direct, easy to get started with, and because it runs really fast.</p>
+<h2>WDL creates separate namespaces</h2>
+<p>In contrast, the workflow languages <a href="http://www.commonwl.org/user_guide/">CWL</a> and <a href="https://software.broadinstitute.org/wdl/documentation/quickstart">WDL</a> (and please let me know about others) define a new namespace for each task, so that the separate tasks become more like functions. To illustrate, in Python I write</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">()</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">load_data</span><span class="p">()</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</pre></div>
+
+
+<p>When <code>f</code> is called here, the arguments are assigned the (temporary) names <code>x</code> and <code>y</code> and inside the function body that is all we need. The function <code>f</code> will never know that a and b were loaded from the same function. In a similar way, a WDL task is like a function that also abstracts away input file names, something like this:</p>
+<div class="highlight"><pre><span></span>task load_data {
+    command { echo foo &gt; bar}
+    output { File out = &quot;bar&quot; }
+}
+
+task f {
+    File x
+    File y
+    command { cat <span class="cp">${</span><span class="n">x</span><span class="cp">}</span> <span class="cp">${</span><span class="n">y</span><span class="cp">}</span> &gt; temp }
+    output { File z = &quot;temp&quot; }
+}
+
+workflow w {
+    call load_data as a
+    call load_data as b
+    call f { input: x=a.out, y=b.out }
+}
+</pre></div>
+
+
+<p>The important point here is that the WDL workflow is executed using a temporary working directory for each task call and substituting the file name placeholders <code>x</code> and <code>y</code> for whatever temporary file names seem suitable. The task <code>load_data</code> concretely created a file output called <code>bar</code>, but this will never be known to the task <code>f</code>.</p>
+<p>WDL can also do a lot of other cool things that I have not mentioned here. I suggest you <a href="https://software.broadinstitute.org/wdl/documentation">check it out</a>.</p>
+<p>(<a href="https://www.commonwl.org/user_guide/">CWL</a> is in principle also a cool project, but in practice I find its YAML-based syntax to be clunky and hard to read. By comparison, WDL is exquisitely readable and writeable considering how much power the language has.)</p>
+<h3>Why I'm not using WDL</h3>
+<p>Almost only for one reason: It is slow. WDL is designed to run big bioinformatics pipelines on clusters, and therefore the execution engine Cromwell has not been optimized to run small laptop-scale workflows fast. Executing the workflow above with the <a href="https://github.com/broadinstitute/cromwell/releases/tag/40">latest Cromwell engine</a> takes about 30 seconds on my laptop. By comparison, I timed the Makefile execution to 6 milliseconds ;)</p>
+<h1>Final words</h1>
+<p>If you read this text I hope you found it interesting. I wrote it mostly to clarify my own thinking. If you had the patience to read <em>and</em> you found it interesting, then probably I would find it interesting to talk to you about file names, or whatever.</p>
+<p>If there was a lightweight execution engine for local laptop-scale jobs I would definitely use WDL, because I think they have done many things right (not just the file naming business). I have been close enough to try to build a simple execution engine myself.</p>
+<p>Sometimes I also put a day or two into hacking on another tool with a friend (we'll let you know if it gets anywhere near useful).</p>
+<p>Now I spent way too much complaining about all this. I have to get back to renaming file outputs.</p>
+<p><img src="https://rasmuse.github.io/images/edward-bear-bump-bump.jpg"></p>
+<p>“Here is Edward Bear, coming downstairs now, bump, bump, bump, on the back of his head, behind Christopher Robin. It is, as far as he knows, the only way of coming downstairs, but sometimes he feels that there really is another way, if only he could stop bumping for a moment and think of it. And then he feels that perhaps there isn't.”</p>
+  </main>
+
+  <footer>
+    <!--     <address class="vcard author">
+      By       <a class="url fn" href="https://rasmuse.github.io/author/rasmus-einarsson.html">Rasmus Einarsson</a>
+    </address>
+ -->
+    <div class="tags">
+      Tags:
+      <a href="https://rasmuse.github.io/tag/workflows.html">workflows</a>
+      <a href="https://rasmuse.github.io/tag/wdl.html">WDL</a>
+      <a href="https://rasmuse.github.io/tag/cwl.html">CWL</a>
+    </div>
+    <div class="category">
+      Category: <a href="https://rasmuse.github.io/category/uncategorized.html">uncategorized</a>
+    </div>
+    <a href="https://rasmuse.github.io/i-want-to-stop-naming-files.html" rel="bookmark"
+    title="Permalink to I want to stop naming files">Permalink to this page</a>
+  </footer>
+</section>
+    </div>
+
+    <footer id="contentinfo" class="body">
+        <div class="container">
+            <address id="about" class="vcard body">
+                Generated with <a href="http://getpelican.com/">Pelican</a>.
+                Theme built using <a href="http://getskeleton.com">Skeleton</a>.
+            </address>
+        </div>
+    </footer>
+</body>
+</html>
