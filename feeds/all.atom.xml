@@ -1,5 +1,223 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Rasmus Einarsson</title><link href="https://rasmuse.github.io/" rel="alternate"></link><link href="https://rasmuse.github.io/feeds/all.atom.xml" rel="self"></link><id>https://rasmuse.github.io/</id><updated>2019-05-17T00:00:00+02:00</updated><entry><title>Eurostat tools for Python: eust v0.4.0</title><link href="https://rasmuse.github.io/eust-v0.4.0.html" rel="alternate"></link><published>2019-05-17T00:00:00+02:00</published><updated>2019-05-17T00:00:00+02:00</updated><author><name>Rasmus Einarsson</name></author><id>tag:rasmuse.github.io,2019-05-17:/eust-v0.4.0.html</id><summary type="html">&lt;p&gt;A small set of tools to download, archive, and read Eurostat tables in Python&lt;/p&gt;</summary><content type="html">&lt;p&gt;tl;dr:&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Rasmus Einarsson</title><link href="https://rasmuse.github.io/" rel="alternate"></link><link href="https://rasmuse.github.io/feeds/all.atom.xml" rel="self"></link><id>https://rasmuse.github.io/</id><updated>2019-05-19T00:00:00+02:00</updated><entry><title>Running multiple instances of Astroid mail</title><link href="https://rasmuse.github.io/multiple-instances-astroid-mail.html" rel="alternate"></link><published>2019-05-19T00:00:00+02:00</published><updated>2019-05-19T00:00:00+02:00</updated><author><name>Rasmus Einarsson</name></author><id>tag:rasmuse.github.io,2019-05-19:/multiple-instances-astroid-mail.html</id><summary type="html">&lt;p&gt;Trying to make an application do something it was not designed to.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I am trying to set up a better email solution for myself. Currently I am using only webmail clients. They are not great, but I honestly find them more attractive than the other turnkey solutions on Linux. In the last years I have tried Thunderbird, Evolution, Geary, Kmail, Trojitá, Nylas N1, Sylpheed, Claws, and maybe others; all easy to get started with, but none of them was pleasant enough for me to keep using. Unsatisfying search interfaces and stupid formatting of sent emails were the most common issues for me.&lt;/p&gt;
+&lt;p&gt;Anyway, the point here is not to rant about email clients. I have been considering for a long time to try &lt;a href="http://www.mutt.org/"&gt;mutt&lt;/a&gt; (or maybe &lt;a href="https://neomutt.org/"&gt;neomutt&lt;/a&gt;?) or &lt;a href="http://astroidmail.github.io/"&gt;Astroid&lt;/a&gt;. Now the plan is:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://isync.sourceforge.net/mbsync.html"&gt;mbsync&lt;/a&gt; to sync IMAP accounts to local maildirs.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://marlam.de/msmtp/"&gt;msmtp&lt;/a&gt; to talk to SMTP servers.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://notmuchmail.org/"&gt;notmuch&lt;/a&gt; to index and search emails.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://astroidmail.github.io/"&gt;Astroid&lt;/a&gt; as the actual interface to all these things.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Clearly there are many things to learn. This post is about how to create separate instances of this whole setup.&lt;/p&gt;
+&lt;h1&gt;One instance per IMAP account&lt;/h1&gt;
+&lt;p&gt;As I use the same computer for both work and personal use, my idea is to run multiple instances of my email application(s), one for personal email and another for work. Who knows, maybe in the future even more instances. Technically speaking, Astroid can handle multiple accounts, but there are reasons not to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;I want to be able to forget about work in my free time. And sometimes also forget about personal emails when I am working. It just seems easiest to run one application for each, and then I can choose which ones I keep open.&lt;/li&gt;
+&lt;li&gt;Also, in the past when I have had email clients with multiple accounts, way too often I accidentally sent things from the wrong account. At present I am running two different webmail clients, which is great in this sense. They look different and also have separate address books, so accidentally emailing colleagues from my personal email and vice versa is extremely unlikely. In fact, I really like that they look different, and I've been thinking I should have different color themes for my work and personal Astroid setups, if this ever starts working.&lt;/li&gt;
+&lt;li&gt;Last, for purely technical reasons it seems nice to have separate settings for work and personal email, to simplify the transfer of account settings and/or data selectively from one computer to another.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h1&gt;How I tried to create separate instances of everything&lt;/h1&gt;
+&lt;h2&gt;Step 1: Compiling and running one Astroid instance&lt;/h2&gt;
+&lt;p&gt;The core of the procedure was to follow the &lt;a href="https://github.com/astroidmail/astroid/blob/v0.14/README.md"&gt;v0.14 &lt;code&gt;README.md&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;
+&lt;p&gt;I clone the master branch (at that time commit &lt;code&gt;aae4c52091cc7ae28b336c19d2f0ac4a3a4056bf&lt;/code&gt;):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;git clone https://github.com/astroidmail/astroid.git
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Then, as per the instructions for &lt;a href="https://github.com/astroidmail/astroid/wiki/Ubuntu"&gt;Ubuntu&lt;/a&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Add `protobuf 3.6` PPA for Ubuntu 18.04&lt;/span&gt;
+sudo add-apt-repository ppa:maarten-fonville/protobuf
+
+&lt;span class="c1"&gt;# And install dependencies&lt;/span&gt;
+sudo apt update
+sudo apt-get install cmake git g++ libnotmuch-dev libglibmm-2.4-dev &lt;span class="se"&gt;\&lt;/span&gt;
+libgtkmm-3.0-dev libwebkit2gtk-4.0-dev libgmime-2.6-dev libsass-dev &lt;span class="se"&gt;\&lt;/span&gt;
+libpeas-dev libgirepository1.0-dev libboost-all-dev libgmime-3.0-dev &lt;span class="se"&gt;\&lt;/span&gt;
+libprotobuf-dev libvte-2.91-dev protobuf-compiler ruby-ronn
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At this point the compilation ran fine (albeit with a bunch of deprecation warnings etc):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; astroid
+cmake -H. -Bbuild -GNinja &lt;span class="c1"&gt;# to use the ninja backend&lt;/span&gt;
+cmake --build build
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Getting the tests to pass&lt;/h3&gt;
+&lt;p&gt;Running the tests:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nb"&gt;cd&lt;/span&gt; build
+ctest
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;At this point, all tests except &lt;code&gt;Test  #3: markdown&lt;/code&gt; and &lt;code&gt;Test #18: quote_html&lt;/code&gt; passed. It turned out to be two easy missing dependencies:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo apt-get install cmark &lt;span class="c1"&gt;# for markdown&lt;/span&gt;
+sudo apt-get install w3m &lt;span class="c1"&gt;# for quote_html&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;Installing&lt;/h3&gt;
+&lt;p&gt;Still just following the &lt;code&gt;README.md&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;cmake -H. -Bbuild -GNinja -DCMAKE_INSTALL_PREFIX&lt;span class="o"&gt;=&lt;/span&gt;/usr/local
+sudo cmake --build build --target install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;OK! Now it works.&lt;/p&gt;
+&lt;h2&gt;Step 2: Configuring two instances&lt;/h2&gt;
+&lt;p&gt;The problem is that Astroid fundamentally seems built on the assumption of running in one instance only. Concretely, it assumes a single location &lt;code&gt;.config&lt;/code&gt; and &lt;code&gt;.cache&lt;/code&gt; directories, etc. Specifically, looking in the &lt;a href="https://github.com/astroidmail/astroid/blob/aae4c52091cc7ae28b336c19d2f0ac4a3a4056bf/src/config.cc"&gt;&lt;code&gt;src/config.cc&lt;/code&gt;&lt;/a&gt; file, we find the following paths:&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Directory name&lt;/th&gt;
+&lt;th&gt;First option&lt;/th&gt;
+&lt;th&gt;Fallback option&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;.config&lt;/td&gt;
+&lt;td&gt;$XDG_CONFIG_HOME/.config&lt;/td&gt;
+&lt;td&gt;$HOME/.config&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;.data&lt;/td&gt;
+&lt;td&gt;$XDG_DATA_HOME/.data&lt;/td&gt;
+&lt;td&gt;$HOME/.local/share/.data&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;.cache&lt;/td&gt;
+&lt;td&gt;$XDG_CACHE_HOME/.cache&lt;/td&gt;
+&lt;td&gt;$HOME/.cache&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;.runtime&lt;/td&gt;
+&lt;td&gt;$XDG_RUNTIME_HOME/.runtime&lt;/td&gt;
+&lt;td&gt;$HOME/.cache&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Most importantly, Astroid's only option for a config file is at &lt;code&gt;.config/astroid/config&lt;/code&gt;. Clearly I need two different config files. The obvious solution is to start Astroid something like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;$XDG_CONFIG_HOME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;~/mail/work/.config astroid
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This does work, but a potential problem is that other applications and libraries also rely on &lt;code&gt;$XDG_CONFIG_HOME&lt;/code&gt;, and I find it difficult to predict how they will behave when they are started from the Astroid process. For example, running the above program, I found directories like  &lt;code&gt;~/mail/work/.config/ibus&lt;/code&gt; etc. I don't know how this will affect the system in the long run, and I don't want to learn the hard way.&lt;/p&gt;
+&lt;h3&gt;Hacking Astroid to use other environment variables&lt;/h3&gt;
+&lt;p&gt;So I made a quick and dirty hack. Open Astroid's &lt;code&gt;src/config.cc&lt;/code&gt; and replace &lt;code&gt;XDG_&lt;/code&gt; by &lt;code&gt;ASTROID_&lt;/code&gt;:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="gh"&gt;diff --git a/src/config.cc b/src/config.cc&lt;/span&gt;
+&lt;span class="gh"&gt;index 0b71440..8011ae9 100644&lt;/span&gt;
+&lt;span class="gd"&gt;--- a/src/config.cc&lt;/span&gt;
+&lt;span class="gi"&gt;+++ b/src/config.cc&lt;/span&gt;
+&lt;span class="gu"&gt;@@ -70,7 +70,7 @@ namespace Astroid {&lt;/span&gt;
+     if (test) {
+       std_paths.config_dir = std_paths.home;
+     } else {
+&lt;span class="gd"&gt;-      char * config_home = getenv (&amp;quot;XDG_CONFIG_HOME&amp;quot;);&lt;/span&gt;
+&lt;span class="gi"&gt;+      char * config_home = getenv (&amp;quot;ASTROID_CONFIG_HOME&amp;quot;);&lt;/span&gt;
+       if (config_home == NULL) {
+         std_paths.config_dir = std_paths.home / path(&amp;quot;.config/astroid&amp;quot;);
+       } else {
+&lt;span class="gu"&gt;@@ -85,7 +85,7 @@ namespace Astroid {&lt;/span&gt;
+     std_paths.plugin_dir = std_paths.config_dir / path (&amp;quot;plugins&amp;quot;);
+
+     /* default data */
+&lt;span class="gd"&gt;-    char * data = getenv (&amp;quot;XDG_DATA_HOME&amp;quot;);&lt;/span&gt;
+&lt;span class="gi"&gt;+    char * data = getenv (&amp;quot;ASTROID_DATA_HOME&amp;quot;);&lt;/span&gt;
+     if (data == NULL) {
+       std_paths.data_dir = std_paths.home / path(&amp;quot;.local/share/astroid&amp;quot;);
+     } else {
+&lt;span class="gu"&gt;@@ -93,7 +93,7 @@ namespace Astroid {&lt;/span&gt;
+     }
+
+     /* default cache */
+&lt;span class="gd"&gt;-    char * cache = getenv (&amp;quot;XDG_CACHE_HOME&amp;quot;);&lt;/span&gt;
+&lt;span class="gi"&gt;+    char * cache = getenv (&amp;quot;ASTROID_CACHE_HOME&amp;quot;);&lt;/span&gt;
+     if (cache == NULL) {
+       std_paths.cache_dir = std_paths.home / path(&amp;quot;.cache/astroid&amp;quot;);
+     } else {
+&lt;span class="gu"&gt;@@ -101,7 +101,7 @@ namespace Astroid {&lt;/span&gt;
+     }
+
+     /* default runtime */
+&lt;span class="gd"&gt;-    char * runtime = getenv (&amp;quot;XDG_RUNTIME_HOME&amp;quot;);&lt;/span&gt;
+&lt;span class="gi"&gt;+    char * runtime = getenv (&amp;quot;ASTROID_RUNTIME_HOME&amp;quot;);&lt;/span&gt;
+     if (runtime == NULL) {
+       std_paths.runtime_dir = std_paths.cache_dir;
+     } else {
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Recompile and install this new Astroid.&lt;/p&gt;
+&lt;h3&gt;Configuring separate instances&lt;/h3&gt;
+&lt;p&gt;Create a &lt;code&gt;launch-account&lt;/code&gt; script like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/env bash&lt;/span&gt;
+
+&lt;span class="nv"&gt;ACCOUNT&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;
+
+&lt;span class="nv"&gt;BASE_DIR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt; &lt;span class="nb"&gt;cd&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="k"&gt;$(&lt;/span&gt; dirname &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;BASH_SOURCE&lt;/span&gt;&lt;span class="p"&gt;[0]&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; &amp;gt;/dev/null &lt;span class="m"&gt;2&lt;/span&gt;&amp;gt;&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="nb"&gt;pwd&lt;/span&gt; &lt;span class="k"&gt;)&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;
+&lt;span class="nv"&gt;ACCOUNT_DIR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$BASE_DIR&lt;/span&gt;/accounts/&lt;span class="nv"&gt;$ACCOUNT&lt;/span&gt;
+
+&lt;span class="nv"&gt;ACCOUNT_DIR&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$ACCOUNT_DIR&lt;/span&gt; &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;span class="nv"&gt;ASTROID_CONFIG_HOME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$ACCOUNT_DIR&lt;/span&gt;/.config &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;span class="nv"&gt;ASTROID_DATA_HOME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$ACCOUNT_DIR&lt;/span&gt;/.data &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;span class="nv"&gt;ASTROID_CACHE_HOME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$ACCOUNT_DIR&lt;/span&gt;/.cache &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;span class="nv"&gt;ASTROID_RUNTIME_HOME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$ACCOUNT_DIR&lt;/span&gt;/.runtime &lt;span class="se"&gt;\&lt;/span&gt;
+&lt;span class="nv"&gt;NOTMUCH_CONFIG&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$ACCOUNT_DIR&lt;/span&gt;/.notmuch-config &lt;span class="se"&gt;\&lt;/span&gt;
+astroid
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This &lt;code&gt;launch-account&lt;/code&gt; script can now be placed in some convenient location, in my case at &lt;code&gt;~/mail/launch-account&lt;/code&gt;, but it does not matter as long as the &lt;code&gt;accounts&lt;/code&gt; directory is in the same place. Inside the &lt;code&gt;accounts&lt;/code&gt; directory, each account has its own directory where config files etc can be placed. In my case it looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;├── accounts
+│   ├── personal
+│   │   ├── .config
+│   │   │   └── astroid
+│   │   │       ├── config
+│   │   │       ├── keybindings
+│   │   │       └── poll.sh
+│   │   ├── .mbsyncrc
+│   │   ├── .msmtprc
+│   │   ├── .notmuch-config
+│   │   └── mail
+│   └── work
+│       ├── .config
+│       │   └── astroid
+│       │       ├── config
+│       │       ├── keybindings
+│       │       └── poll.sh
+│       ├── .mbsyncrc
+│       ├── .msmtprc
+│       ├── .notmuch-config
+│       └── mail
+└── launch-account
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;There are a few locations where the different config files must have account-specific paths. The most important examples I can think of now:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The directory &lt;code&gt;accounts/{account}/mail&lt;/code&gt; contains the account-specific maildir and the notmuch database. Of course &lt;code&gt;.mbsyncrc&lt;/code&gt; and &lt;code&gt;.notmuchconfig&lt;/code&gt; must be configured accordingly.&lt;/li&gt;
+&lt;li&gt;Astroid must be configured to invoke msmtp with the account-specific config file, something like &lt;code&gt;msmtp --file=/home/rasmus/mail/accounts/work/.msmtprc -i -t&lt;/code&gt;. (Or, alternatively, I guess one could use a global &lt;code&gt;.msmtprc&lt;/code&gt; and use the auto-from feature.)&lt;/li&gt;
+&lt;li&gt;The Astroid config must also point to the account-specific mail directories, etc, e.g., in the Astroid settings &lt;code&gt;accounts.{id}.save_sent_to&lt;/code&gt; and &lt;code&gt;startup.queries&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;However, the &lt;code&gt;accounts/{account}/.config/astroid/poll.sh&lt;/code&gt; script is actually the same for both my accounts, because it can use the &lt;code&gt;$ACCOUNT_DIR&lt;/code&gt; variable set in &lt;code&gt;launch-account&lt;/code&gt;. In my case it's currently just these few lines:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/env bash&lt;/span&gt;
+&lt;span class="nb"&gt;set&lt;/span&gt; -e &lt;span class="c1"&gt;# Exit as soon as one of the commands fail.&lt;/span&gt;
+mbsync --config &lt;span class="nv"&gt;$ACCOUNT_DIR&lt;/span&gt;/.mbsyncrc -a
+notmuch --config&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nv"&gt;$ACCOUNT_DIR&lt;/span&gt;/.notmuch-config new
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Now, launching either of the configurations is as simple as this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;~/mail/launch-account work
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Step 3: How to run them simultaneously?&lt;/h2&gt;
+&lt;p&gt;Launching either one of these configurations works just fine. But running both simultaneously does not. If I first start one (say &lt;code&gt;work&lt;/code&gt;) and then the other (&lt;code&gt;personal&lt;/code&gt;), then the second launch just results in another window for the account that launched first. Obviously the instances are sharing something that I don't want them to share.&lt;/p&gt;
+&lt;p&gt;Installing and running another copy of Astroid with a different prefix makes no difference.&lt;/p&gt;
+&lt;p&gt;Thus, at the moment I did not really achieve much. I could just as well run Astroid without my little patch, and instead make a little script to move in/out the account-specific &lt;code&gt;.config/astroid&lt;/code&gt;, &lt;code&gt;.cache/astroid&lt;/code&gt; etc before launching.&lt;/p&gt;
+&lt;p&gt;To be continued, I suppose...&lt;/p&gt;</content><category term="email astroid"></category></entry><entry><title>Eurostat tools for Python: eust v0.4.0</title><link href="https://rasmuse.github.io/eust-v0.4.0.html" rel="alternate"></link><published>2019-05-17T00:00:00+02:00</published><updated>2019-05-17T00:00:00+02:00</updated><author><name>Rasmus Einarsson</name></author><id>tag:rasmuse.github.io,2019-05-17:/eust-v0.4.0.html</id><summary type="html">&lt;p&gt;A small set of tools to download, archive, and read Eurostat tables in Python&lt;/p&gt;</summary><content type="html">&lt;p&gt;tl;dr:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;$ pip install eust
 $ eust download table apro_cpsh1
 &lt;/pre&gt;&lt;/div&gt;

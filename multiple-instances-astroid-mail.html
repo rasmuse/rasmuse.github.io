@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Rasmus Einarsson - Running multiple instances of Astroid mail</title>
+    <meta charset="utf-8" />
+    <link href="https://rasmuse.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Rasmus Einarsson Full Atom Feed" />
+    <link href="https://rasmuse.github.io/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate" title="Rasmus Einarsson Categories Atom Feed" />
+
+
+
+
+<meta name="tags" content="email astroid" />
+
+
+<!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="https://fonts.googleapis.com/css?family=Merriweather" rel="stylesheet">
+
+<!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/normalize.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/skeleton.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/pygment.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/more.css">
+
+<!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+
+<body id="index" class="home">
+
+    <header id="banner">
+        <div class="container">
+            <h1><a href="https://rasmuse.github.io/">Rasmus Einarsson <strong></strong></a></h1>
+        </div>
+    </header>
+
+    <nav id="menu">
+        <div class="container">
+            <ul>
+                <li><a href="https://rasmuse.github.io/">Home</a></li>
+                <li><a href="https://rasmuse.github.io/pages/about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+<article id="content">
+  <header>
+    <h1 id="article-title">Running multiple instances of Astroid mail</h1>
+
+    
+    <time class="published" datetime="2019-05-19T00:00:00+02:00">
+      19 May 2019
+    </time>
+  </header>
+
+
+  <main class="entry-content">
+    <p>I am trying to set up a better email solution for myself. Currently I am using only webmail clients. They are not great, but I honestly find them more attractive than the other turnkey solutions on Linux. In the last years I have tried Thunderbird, Evolution, Geary, Kmail, Trojitá, Nylas N1, Sylpheed, Claws, and maybe others; all easy to get started with, but none of them was pleasant enough for me to keep using. Unsatisfying search interfaces and stupid formatting of sent emails were the most common issues for me.</p>
+<p>Anyway, the point here is not to rant about email clients. I have been considering for a long time to try <a href="http://www.mutt.org/">mutt</a> (or maybe <a href="https://neomutt.org/">neomutt</a>?) or <a href="http://astroidmail.github.io/">Astroid</a>. Now the plan is:</p>
+<ul>
+<li><a href="http://isync.sourceforge.net/mbsync.html">mbsync</a> to sync IMAP accounts to local maildirs.</li>
+<li><a href="https://marlam.de/msmtp/">msmtp</a> to talk to SMTP servers.</li>
+<li><a href="https://notmuchmail.org/">notmuch</a> to index and search emails.</li>
+<li><a href="http://astroidmail.github.io/">Astroid</a> as the actual interface to all these things.</li>
+</ul>
+<p>Clearly there are many things to learn. This post is about how to create separate instances of this whole setup.</p>
+<h1>One instance per IMAP account</h1>
+<p>As I use the same computer for both work and personal use, my idea is to run multiple instances of my email application(s), one for personal email and another for work. Who knows, maybe in the future even more instances. Technically speaking, Astroid can handle multiple accounts, but there are reasons not to:</p>
+<ul>
+<li>I want to be able to forget about work in my free time. And sometimes also forget about personal emails when I am working. It just seems easiest to run one application for each, and then I can choose which ones I keep open.</li>
+<li>Also, in the past when I have had email clients with multiple accounts, way too often I accidentally sent things from the wrong account. At present I am running two different webmail clients, which is great in this sense. They look different and also have separate address books, so accidentally emailing colleagues from my personal email and vice versa is extremely unlikely. In fact, I really like that they look different, and I've been thinking I should have different color themes for my work and personal Astroid setups, if this ever starts working.</li>
+<li>Last, for purely technical reasons it seems nice to have separate settings for work and personal email, to simplify the transfer of account settings and/or data selectively from one computer to another.</li>
+</ul>
+<h1>How I tried to create separate instances of everything</h1>
+<h2>Step 1: Compiling and running one Astroid instance</h2>
+<p>The core of the procedure was to follow the <a href="https://github.com/astroidmail/astroid/blob/v0.14/README.md">v0.14 <code>README.md</code></a>:</p>
+<p>I clone the master branch (at that time commit <code>aae4c52091cc7ae28b336c19d2f0ac4a3a4056bf</code>):</p>
+<div class="highlight"><pre><span></span>git clone https://github.com/astroidmail/astroid.git
+</pre></div>
+
+
+<p>Then, as per the instructions for <a href="https://github.com/astroidmail/astroid/wiki/Ubuntu">Ubuntu</a>:</p>
+<div class="highlight"><pre><span></span><span class="c1"># Add `protobuf 3.6` PPA for Ubuntu 18.04</span>
+sudo add-apt-repository ppa:maarten-fonville/protobuf
+
+<span class="c1"># And install dependencies</span>
+sudo apt update
+sudo apt-get install cmake git g++ libnotmuch-dev libglibmm-2.4-dev <span class="se">\</span>
+libgtkmm-3.0-dev libwebkit2gtk-4.0-dev libgmime-2.6-dev libsass-dev <span class="se">\</span>
+libpeas-dev libgirepository1.0-dev libboost-all-dev libgmime-3.0-dev <span class="se">\</span>
+libprotobuf-dev libvte-2.91-dev protobuf-compiler ruby-ronn
+</pre></div>
+
+
+<p>At this point the compilation ran fine (albeit with a bunch of deprecation warnings etc):</p>
+<div class="highlight"><pre><span></span><span class="nb">cd</span> astroid
+cmake -H. -Bbuild -GNinja <span class="c1"># to use the ninja backend</span>
+cmake --build build
+</pre></div>
+
+
+<h3>Getting the tests to pass</h3>
+<p>Running the tests:</p>
+<div class="highlight"><pre><span></span><span class="nb">cd</span> build
+ctest
+</pre></div>
+
+
+<p>At this point, all tests except <code>Test  #3: markdown</code> and <code>Test #18: quote_html</code> passed. It turned out to be two easy missing dependencies:</p>
+<div class="highlight"><pre><span></span>sudo apt-get install cmark <span class="c1"># for markdown</span>
+sudo apt-get install w3m <span class="c1"># for quote_html</span>
+</pre></div>
+
+
+<h3>Installing</h3>
+<p>Still just following the <code>README.md</code>.</p>
+<div class="highlight"><pre><span></span>cmake -H. -Bbuild -GNinja -DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local
+sudo cmake --build build --target install
+</pre></div>
+
+
+<p>OK! Now it works.</p>
+<h2>Step 2: Configuring two instances</h2>
+<p>The problem is that Astroid fundamentally seems built on the assumption of running in one instance only. Concretely, it assumes a single location <code>.config</code> and <code>.cache</code> directories, etc. Specifically, looking in the <a href="https://github.com/astroidmail/astroid/blob/aae4c52091cc7ae28b336c19d2f0ac4a3a4056bf/src/config.cc"><code>src/config.cc</code></a> file, we find the following paths:</p>
+<table>
+<thead>
+<tr>
+<th>Directory name</th>
+<th>First option</th>
+<th>Fallback option</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>.config</td>
+<td>$XDG_CONFIG_HOME/.config</td>
+<td>$HOME/.config</td>
+</tr>
+<tr>
+<td>.data</td>
+<td>$XDG_DATA_HOME/.data</td>
+<td>$HOME/.local/share/.data</td>
+</tr>
+<tr>
+<td>.cache</td>
+<td>$XDG_CACHE_HOME/.cache</td>
+<td>$HOME/.cache</td>
+</tr>
+<tr>
+<td>.runtime</td>
+<td>$XDG_RUNTIME_HOME/.runtime</td>
+<td>$HOME/.cache</td>
+</tr>
+</tbody>
+</table>
+<p>Most importantly, Astroid's only option for a config file is at <code>.config/astroid/config</code>. Clearly I need two different config files. The obvious solution is to start Astroid something like this:</p>
+<div class="highlight"><pre><span></span><span class="nv">$XDG_CONFIG_HOME</span><span class="o">=</span>~/mail/work/.config astroid
+</pre></div>
+
+
+<p>This does work, but a potential problem is that other applications and libraries also rely on <code>$XDG_CONFIG_HOME</code>, and I find it difficult to predict how they will behave when they are started from the Astroid process. For example, running the above program, I found directories like  <code>~/mail/work/.config/ibus</code> etc. I don't know how this will affect the system in the long run, and I don't want to learn the hard way.</p>
+<h3>Hacking Astroid to use other environment variables</h3>
+<p>So I made a quick and dirty hack. Open Astroid's <code>src/config.cc</code> and replace <code>XDG_</code> by <code>ASTROID_</code>:</p>
+<div class="highlight"><pre><span></span><span class="gh">diff --git a/src/config.cc b/src/config.cc</span>
+<span class="gh">index 0b71440..8011ae9 100644</span>
+<span class="gd">--- a/src/config.cc</span>
+<span class="gi">+++ b/src/config.cc</span>
+<span class="gu">@@ -70,7 +70,7 @@ namespace Astroid {</span>
+     if (test) {
+       std_paths.config_dir = std_paths.home;
+     } else {
+<span class="gd">-      char * config_home = getenv (&quot;XDG_CONFIG_HOME&quot;);</span>
+<span class="gi">+      char * config_home = getenv (&quot;ASTROID_CONFIG_HOME&quot;);</span>
+       if (config_home == NULL) {
+         std_paths.config_dir = std_paths.home / path(&quot;.config/astroid&quot;);
+       } else {
+<span class="gu">@@ -85,7 +85,7 @@ namespace Astroid {</span>
+     std_paths.plugin_dir = std_paths.config_dir / path (&quot;plugins&quot;);
+
+     /* default data */
+<span class="gd">-    char * data = getenv (&quot;XDG_DATA_HOME&quot;);</span>
+<span class="gi">+    char * data = getenv (&quot;ASTROID_DATA_HOME&quot;);</span>
+     if (data == NULL) {
+       std_paths.data_dir = std_paths.home / path(&quot;.local/share/astroid&quot;);
+     } else {
+<span class="gu">@@ -93,7 +93,7 @@ namespace Astroid {</span>
+     }
+
+     /* default cache */
+<span class="gd">-    char * cache = getenv (&quot;XDG_CACHE_HOME&quot;);</span>
+<span class="gi">+    char * cache = getenv (&quot;ASTROID_CACHE_HOME&quot;);</span>
+     if (cache == NULL) {
+       std_paths.cache_dir = std_paths.home / path(&quot;.cache/astroid&quot;);
+     } else {
+<span class="gu">@@ -101,7 +101,7 @@ namespace Astroid {</span>
+     }
+
+     /* default runtime */
+<span class="gd">-    char * runtime = getenv (&quot;XDG_RUNTIME_HOME&quot;);</span>
+<span class="gi">+    char * runtime = getenv (&quot;ASTROID_RUNTIME_HOME&quot;);</span>
+     if (runtime == NULL) {
+       std_paths.runtime_dir = std_paths.cache_dir;
+     } else {
+</pre></div>
+
+
+<p>Recompile and install this new Astroid.</p>
+<h3>Configuring separate instances</h3>
+<p>Create a <code>launch-account</code> script like this:</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+
+<span class="nv">ACCOUNT</span><span class="o">=</span><span class="nv">$1</span>
+
+<span class="nv">BASE_DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span> <span class="nb">cd</span> <span class="s2">&quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">)</span><span class="s2">&quot;</span> &gt;/dev/null <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span> <span class="o">&amp;&amp;</span> <span class="nb">pwd</span> <span class="k">)</span><span class="s2">&quot;</span>
+<span class="nv">ACCOUNT_DIR</span><span class="o">=</span><span class="nv">$BASE_DIR</span>/accounts/<span class="nv">$ACCOUNT</span>
+
+<span class="nv">ACCOUNT_DIR</span><span class="o">=</span><span class="nv">$ACCOUNT_DIR</span> <span class="se">\</span>
+<span class="nv">ASTROID_CONFIG_HOME</span><span class="o">=</span><span class="nv">$ACCOUNT_DIR</span>/.config <span class="se">\</span>
+<span class="nv">ASTROID_DATA_HOME</span><span class="o">=</span><span class="nv">$ACCOUNT_DIR</span>/.data <span class="se">\</span>
+<span class="nv">ASTROID_CACHE_HOME</span><span class="o">=</span><span class="nv">$ACCOUNT_DIR</span>/.cache <span class="se">\</span>
+<span class="nv">ASTROID_RUNTIME_HOME</span><span class="o">=</span><span class="nv">$ACCOUNT_DIR</span>/.runtime <span class="se">\</span>
+<span class="nv">NOTMUCH_CONFIG</span><span class="o">=</span><span class="nv">$ACCOUNT_DIR</span>/.notmuch-config <span class="se">\</span>
+astroid
+</pre></div>
+
+
+<p>This <code>launch-account</code> script can now be placed in some convenient location, in my case at <code>~/mail/launch-account</code>, but it does not matter as long as the <code>accounts</code> directory is in the same place. Inside the <code>accounts</code> directory, each account has its own directory where config files etc can be placed. In my case it looks like this:</p>
+<div class="highlight"><pre><span></span>├── accounts
+│   ├── personal
+│   │   ├── .config
+│   │   │   └── astroid
+│   │   │       ├── config
+│   │   │       ├── keybindings
+│   │   │       └── poll.sh
+│   │   ├── .mbsyncrc
+│   │   ├── .msmtprc
+│   │   ├── .notmuch-config
+│   │   └── mail
+│   └── work
+│       ├── .config
+│       │   └── astroid
+│       │       ├── config
+│       │       ├── keybindings
+│       │       └── poll.sh
+│       ├── .mbsyncrc
+│       ├── .msmtprc
+│       ├── .notmuch-config
+│       └── mail
+└── launch-account
+</pre></div>
+
+
+<p>There are a few locations where the different config files must have account-specific paths. The most important examples I can think of now:</p>
+<ul>
+<li>The directory <code>accounts/{account}/mail</code> contains the account-specific maildir and the notmuch database. Of course <code>.mbsyncrc</code> and <code>.notmuchconfig</code> must be configured accordingly.</li>
+<li>Astroid must be configured to invoke msmtp with the account-specific config file, something like <code>msmtp --file=/home/rasmus/mail/accounts/work/.msmtprc -i -t</code>. (Or, alternatively, I guess one could use a global <code>.msmtprc</code> and use the auto-from feature.)</li>
+<li>The Astroid config must also point to the account-specific mail directories, etc, e.g., in the Astroid settings <code>accounts.{id}.save_sent_to</code> and <code>startup.queries</code>.</li>
+</ul>
+<p>However, the <code>accounts/{account}/.config/astroid/poll.sh</code> script is actually the same for both my accounts, because it can use the <code>$ACCOUNT_DIR</code> variable set in <code>launch-account</code>. In my case it's currently just these few lines:</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env bash</span>
+<span class="nb">set</span> -e <span class="c1"># Exit as soon as one of the commands fail.</span>
+mbsync --config <span class="nv">$ACCOUNT_DIR</span>/.mbsyncrc -a
+notmuch --config<span class="o">=</span><span class="nv">$ACCOUNT_DIR</span>/.notmuch-config new
+</pre></div>
+
+
+<p>Now, launching either of the configurations is as simple as this:</p>
+<div class="highlight"><pre><span></span>~/mail/launch-account work
+</pre></div>
+
+
+<h2>Step 3: How to run them simultaneously?</h2>
+<p>Launching either one of these configurations works just fine. But running both simultaneously does not. If I first start one (say <code>work</code>) and then the other (<code>personal</code>), then the second launch just results in another window for the account that launched first. Obviously the instances are sharing something that I don't want them to share.</p>
+<p>Installing and running another copy of Astroid with a different prefix makes no difference.</p>
+<p>Thus, at the moment I did not really achieve much. I could just as well run Astroid without my little patch, and instead make a little script to move in/out the account-specific <code>.config/astroid</code>, <code>.cache/astroid</code> etc before launching.</p>
+<p>To be continued, I suppose...</p>
+  </main>
+
+  <footer>
+    <!--     <address class="vcard author">
+      By       <a class="url fn" href="https://rasmuse.github.io/author/rasmus-einarsson.html">Rasmus Einarsson</a>
+    </address>
+ -->
+    <div class="tags">
+      Tags:
+      <a href="https://rasmuse.github.io/tag/email-astroid.html">email astroid</a>
+    </div>
+    <div class="category">
+      Category: <a href="https://rasmuse.github.io/category/uncategorized.html">uncategorized</a>
+    </div>
+    <a href="https://rasmuse.github.io/multiple-instances-astroid-mail.html" rel="bookmark"
+    title="Permalink to Running multiple instances of Astroid mail">Permalink to this page</a>
+  </footer>
+</section>
+    </div>
+
+    <footer id="contentinfo" class="body">
+        <div class="container">
+            <address id="about" class="vcard body">
+                Generated with <a href="http://getpelican.com/">Pelican</a>.
+                Theme built using <a href="http://getskeleton.com">Skeleton</a>.
+            </address>
+        </div>
+    </footer>
+</body>
+</html>
