@@ -29,7 +29,8 @@ li {
 
 #post-list li {
 	margin-bottom: 0.5rem;
-	margin-left: 2rem;
+	margin-left: 0rem;
+	list-style-type: none;
 }
 
 div.summary {
