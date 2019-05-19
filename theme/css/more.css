@@ -27,6 +27,11 @@ li {
 	list-style-position: outside;
 }
 
+#post-list li {
+	margin-bottom: 0.5rem;
+	margin-left: 2rem;
+}
+
 div.summary {
 	border-left: 6px solid #d5ac20;
 	padding-left: 1rem;
