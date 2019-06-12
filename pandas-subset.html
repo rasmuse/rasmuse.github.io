@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Rasmus Einarsson - Cleaner subset selection in pandas</title>
+    <meta charset="utf-8" />
+    <link href="https://rasmuse.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Rasmus Einarsson Full Atom Feed" />
+    <link href="https://rasmuse.github.io/feeds/{slug}.atom.xml" type="application/atom+xml" rel="alternate" title="Rasmus Einarsson Categories Atom Feed" />
+
+
+
+
+<meta name="tags" content="python pandas" />
+
+
+<!-- Mobile Specific Metas
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- FONT
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link href="https://fonts.googleapis.com/css?family=Merriweather" rel="stylesheet">
+
+<!-- CSS
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/normalize.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/skeleton.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/pygment.css">
+    <link rel="stylesheet" href="https://rasmuse.github.io/theme/css/more.css">
+
+<!-- Favicon
+    –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+
+<body id="index" class="home">
+
+    <header id="banner">
+        <div class="container">
+            <h1><a href="https://rasmuse.github.io/">Rasmus Einarsson <strong></strong></a></h1>
+        </div>
+    </header>
+
+    <nav id="menu">
+        <div class="container">
+            <ul>
+                <li><a href="https://rasmuse.github.io/">Home</a></li>
+                <li><a href="https://rasmuse.github.io/pages/about.html">About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+<article id="content">
+  <header>
+    <h1 id="article-title">Cleaner subset selection in pandas</h1>
+
+    
+    <time class="published" datetime="2019-06-11T00:00:00+02:00">
+      11 June 2019
+    </time>
+  </header>
+
+
+  <main class="entry-content">
+    <p>I was recently teaching some basics in <a href="https://pandas.pydata.org/pandas-docs/stable/">pandas</a> to two colleagues who already know how to work with dataframes in R. They did not seem very happy about my suggested way to chain subset selection operations depending on the values of a DataFrame:</p>
+<div class="highlight"><pre><span></span><span class="n">selected</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">data</span>
+    <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;column_A&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;column_B&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;column_C&#39;</span><span class="p">]])</span>
+    <span class="c1"># etc</span>
+<span class="p">)</span>
+</pre></div>
+
+
+<p>Talking to my colleagues made me realize that these lines are potentially quite confusing to a Python beginner. The <code>d[d[...]]</code> appearing on each row is not exactly beautiful. A large part of these rows are meaningless repetition: in <code>.pipe(lambda d: d[something]])</code> the most important content is actually only the <code>something</code>.</p>
+<p>Compare to the equivalent R (<code>dplyr</code>) code which is clean and crystal clear:</p>
+<div class="highlight"><pre><span></span><span class="n">selected</span> <span class="o">&lt;-</span> <span class="n">data</span> <span class="o">%&gt;%</span>
+    <span class="nf">filter</span><span class="p">(</span><span class="n">column.A</span> <span class="o">&gt;</span> <span class="m">0</span><span class="p">)</span> <span class="o">%&gt;%</span>
+    <span class="nf">filter</span><span class="p">(</span><span class="n">column.B</span> <span class="o">&lt;</span> <span class="n">column.C</span><span class="p">)</span> <span class="o">%&gt;%</span>
+    <span class="c1">#etc</span>
+</pre></div>
+
+
+<h2>Alternatives in pandas</h2>
+<p>To my knowledge there is no equivalent function of the <code>dplyr</code> <code>filter</code> in pandas. There is a <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html?highlight=filter#pandas.DataFrame.filter"><code>DataFrame.filter</code> method</a> but it only selects according to labels. There is also a <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.where.html?highlight=where#pandas.DataFrame.where"><code>DataFrame.where</code></a> which almost does the right thing, but non-selected rows are filled with <code>nan</code> instead of being dropped.</p>
+<p>Don't get me wrong, both <code>DataFrame.filter</code> and <code>DataFrame.where</code> are useful, but they don't provide anything like the <code>filter</code> function in R.</p>
+<h2>A monkey-patch solution for <code>NDFrame</code></h2>
+<p>So I ended up monkey-patching pandas to deal with the problem. The first patch goes on <code>NDFrame</code> and thus provides the syntax <code>.subset(predicate)</code> on both <code>Series</code> and <code>DataFrame</code>.</p>
+<div class="highlight"><pre><span></span><span class="n">selected</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">data</span>
+    <span class="o">.</span><span class="n">subset</span><span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;column_A&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">subset</span><span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;column_B&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;column_C&#39;</span><span class="p">])</span>
+    <span class="c1"># etc</span>
+<span class="p">)</span>
+</pre></div>
+
+
+<p>Actually, this code is not much shorter than my usual way with <code>.pipe(...)</code> but I find that it is much more legible. Less brackets to confuse the eyes, and the verb <code>subset</code> is more informative than <code>pipe</code>.</p>
+<h2>And a similar one for <code>GroupBy</code></h2>
+<p>The other monkey-patch goes on <code>GroupBy</code>. For example, to select all the above-mean items in each group:</p>
+<div class="highlight"><pre><span></span><span class="n">above_mean</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">my_series</span>
+    <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">)</span>  <span class="c1"># usually some index level, but could be any grouping</span>
+    <span class="o">.</span><span class="n">subset</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="n">s</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="p">)</span>
+</pre></div>
+
+
+<p>This one I find very useful. However, it is slightly questionable because I built it to return an index with the same levels as the original data. This is somewhat unusual compared to most <code>GroupBy</code> operations, whose results normally have the group keys as index (i.e., one row per group).</p>
+<h2>The code and a notebook with examples</h2>
+<p>The code example below shows my first try at an implementation. It seems to work alright, but I probably will find some edge cases as I use it more.</p>
+<p>I also made a <a href="https://github.com/rasmuse/pandas-subset/blob/ddd6e54bdb8b3bdbc820e8bc48bb792b474a3629/A%20better%20way%20to%20select%20subsets%20in%20pandas.ipynb">notebook with some more examples</a>.</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="k">def</span> <span class="nf">subset</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">predicate</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get a subset of a pandas NDFrame using a predicate.</span>
+
+<span class="sd">    Equivalent to d[predicate(d, *args, **kwargs)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">d</span><span class="p">[</span><span class="n">predicate</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span>
+
+<span class="c1"># Monkey-patch the NDFrame to allow DataFrame.subset(predicate)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">generic</span><span class="o">.</span><span class="n">NDFrame</span><span class="o">.</span><span class="n">subset</span> <span class="o">=</span> <span class="n">subset</span>
+
+<span class="k">def</span> <span class="nf">groupby_subset</span><span class="p">(</span><span class="n">groupby</span><span class="p">,</span> <span class="n">predicate</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply subsetting for each group in a pandas GroupBy.</span>
+
+<span class="sd">    Roughly equivalent to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">groupby</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">subset</span><span class="p">,</span> <span class="n">predicate</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="n">any_group_index</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">groupby</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+    <span class="n">orig_n_levels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">any_group_index</span><span class="o">.</span><span class="n">levels</span><span class="p">)</span>
+    <span class="n">result_n_levels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">levels</span><span class="p">)</span>
+    <span class="n">levels_to_drop</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">result_n_levels</span> <span class="o">-</span> <span class="n">orig_n_levels</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="n">levels_to_drop</span><span class="p">)</span>
+
+<span class="c1"># And monkey-patch GroupBy to allow GroupBy.subset(predicate)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">groupby</span><span class="o">.</span><span class="n">GroupBy</span><span class="o">.</span><span class="n">subset</span> <span class="o">=</span> <span class="n">groupby_subset</span>
+</pre></div>
+  </main>
+
+  <footer>
+    <!--     <address class="vcard author">
+      By       <a class="url fn" href="https://rasmuse.github.io/author/rasmus-einarsson.html">Rasmus Einarsson</a>
+    </address>
+ -->
+    <div class="tags">
+      Tags:
+      <a href="https://rasmuse.github.io/tag/python-pandas.html">python pandas</a>
+    </div>
+    <div class="category">
+      Category: <a href="https://rasmuse.github.io/category/uncategorized.html">uncategorized</a>
+    </div>
+    <a href="https://rasmuse.github.io/pandas-subset.html" rel="bookmark"
+    title="Permalink to Cleaner subset selection in pandas">Permalink to this page</a>
+  </footer>
+</section>
+    </div>
+
+    <footer id="contentinfo" class="body">
+        <div class="container">
+            <address id="about" class="vcard body">
+                Generated with <a href="http://getpelican.com/">Pelican</a>.
+                Theme built using <a href="http://getskeleton.com">Skeleton</a>.
+            </address>
+        </div>
+    </footer>
+</body>
+</html>

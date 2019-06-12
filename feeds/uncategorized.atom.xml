@@ -1,5 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Rasmus Einarsson - uncategorized</title><link href="https://rasmuse.github.io/" rel="alternate"></link><link href="https://rasmuse.github.io/feeds/uncategorized.atom.xml" rel="self"></link><id>https://rasmuse.github.io/</id><updated>2019-05-19T00:00:00+02:00</updated><entry><title>Running multiple instances of Astroid mail</title><link href="https://rasmuse.github.io/multiple-instances-astroid-mail.html" rel="alternate"></link><published>2019-05-19T00:00:00+02:00</published><updated>2019-05-19T00:00:00+02:00</updated><author><name>Rasmus Einarsson</name></author><id>tag:rasmuse.github.io,2019-05-19:/multiple-instances-astroid-mail.html</id><summary type="html">&lt;p&gt;Trying to make an application do something it was not designed to.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I am trying to set up a better email solution for myself. Currently I am using only webmail clients. They are not great, but I honestly find them more attractive than the other turnkey solutions on Linux. In the last years I have tried Thunderbird, Evolution, Geary, Kmail, Trojitá, Nylas N1, Sylpheed, Claws, and maybe others; all easy to get started with, but none of them was pleasant enough for me to keep using. Unsatisfying search interfaces and stupid formatting of sent emails were the most common issues for me.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Rasmus Einarsson - uncategorized</title><link href="https://rasmuse.github.io/" rel="alternate"></link><link href="https://rasmuse.github.io/feeds/uncategorized.atom.xml" rel="self"></link><id>https://rasmuse.github.io/</id><updated>2019-06-11T00:00:00+02:00</updated><entry><title>Cleaner subset selection in pandas</title><link href="https://rasmuse.github.io/pandas-subset.html" rel="alternate"></link><published>2019-06-11T00:00:00+02:00</published><updated>2019-06-11T00:00:00+02:00</updated><author><name>Rasmus Einarsson</name></author><id>tag:rasmuse.github.io,2019-06-11:/pandas-subset.html</id><summary type="html">&lt;p&gt;Monkey-patching two subset() methods in pandas.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I was recently teaching some basics in &lt;a href="https://pandas.pydata.org/pandas-docs/stable/"&gt;pandas&lt;/a&gt; to two colleagues who already know how to work with dataframes in R. They did not seem very happy about my suggested way to chain subset selection operations depending on the values of a DataFrame:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;selected&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;data&lt;/span&gt;
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pipe&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;column_A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pipe&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;column_B&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;column_C&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]])&lt;/span&gt;
+    &lt;span class="c1"&gt;# etc&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Talking to my colleagues made me realize that these lines are potentially quite confusing to a Python beginner. The &lt;code&gt;d[d[...]]&lt;/code&gt; appearing on each row is not exactly beautiful. A large part of these rows are meaningless repetition: in &lt;code&gt;.pipe(lambda d: d[something]])&lt;/code&gt; the most important content is actually only the &lt;code&gt;something&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Compare to the equivalent R (&lt;code&gt;dplyr&lt;/code&gt;) code which is clean and crystal clear:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;selected&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;-&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;%&amp;gt;%&lt;/span&gt;
+    &lt;span class="nf"&gt;filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;column.A&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;%&amp;gt;%&lt;/span&gt;
+    &lt;span class="nf"&gt;filter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;column.B&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;column.C&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;%&amp;gt;%&lt;/span&gt;
+    &lt;span class="c1"&gt;#etc&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;Alternatives in pandas&lt;/h2&gt;
+&lt;p&gt;To my knowledge there is no equivalent function of the &lt;code&gt;dplyr&lt;/code&gt; &lt;code&gt;filter&lt;/code&gt; in pandas. There is a &lt;a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.filter.html?highlight=filter#pandas.DataFrame.filter"&gt;&lt;code&gt;DataFrame.filter&lt;/code&gt; method&lt;/a&gt; but it only selects according to labels. There is also a &lt;a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.where.html?highlight=where#pandas.DataFrame.where"&gt;&lt;code&gt;DataFrame.where&lt;/code&gt;&lt;/a&gt; which almost does the right thing, but non-selected rows are filled with &lt;code&gt;nan&lt;/code&gt; instead of being dropped.&lt;/p&gt;
+&lt;p&gt;Don't get me wrong, both &lt;code&gt;DataFrame.filter&lt;/code&gt; and &lt;code&gt;DataFrame.where&lt;/code&gt; are useful, but they don't provide anything like the &lt;code&gt;filter&lt;/code&gt; function in R.&lt;/p&gt;
+&lt;h2&gt;A monkey-patch solution for &lt;code&gt;NDFrame&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;So I ended up monkey-patching pandas to deal with the problem. The first patch goes on &lt;code&gt;NDFrame&lt;/code&gt; and thus provides the syntax &lt;code&gt;.subset(predicate)&lt;/code&gt; on both &lt;code&gt;Series&lt;/code&gt; and &lt;code&gt;DataFrame&lt;/code&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;selected&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;data&lt;/span&gt;
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;column_A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;column_B&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;column_C&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+    &lt;span class="c1"&gt;# etc&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Actually, this code is not much shorter than my usual way with &lt;code&gt;.pipe(...)&lt;/code&gt; but I find that it is much more legible. Less brackets to confuse the eyes, and the verb &lt;code&gt;subset&lt;/code&gt; is more informative than &lt;code&gt;pipe&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;And a similar one for &lt;code&gt;GroupBy&lt;/code&gt;&lt;/h2&gt;
+&lt;p&gt;The other monkey-patch goes on &lt;code&gt;GroupBy&lt;/code&gt;. For example, to select all the above-mean items in each group:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;above_mean&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;my_series&lt;/span&gt;
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;groupby&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;  &lt;span class="c1"&gt;# usually some index level, but could be any grouping&lt;/span&gt;
+    &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mean&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;This one I find very useful. However, it is slightly questionable because I built it to return an index with the same levels as the original data. This is somewhat unusual compared to most &lt;code&gt;GroupBy&lt;/code&gt; operations, whose results normally have the group keys as index (i.e., one row per group).&lt;/p&gt;
+&lt;h2&gt;The code and a notebook with examples&lt;/h2&gt;
+&lt;p&gt;The code example below shows my first try at an implementation. It seems to work alright, but I probably will find some edge cases as I use it more.&lt;/p&gt;
+&lt;p&gt;I also made a &lt;a href="https://github.com/rasmuse/pandas-subset/blob/ddd6e54bdb8b3bdbc820e8bc48bb792b474a3629/A%20better%20way%20to%20select%20subsets%20in%20pandas.ipynb"&gt;notebook with some more examples&lt;/a&gt;.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pd&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;subset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;predicate&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="sd"&gt;    Get a subset of a pandas NDFrame using a predicate.&lt;/span&gt;
+
+&lt;span class="sd"&gt;    Equivalent to d[predicate(d, *args, **kwargs)]&lt;/span&gt;
+&lt;span class="sd"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;predicate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;)]&lt;/span&gt;
+
+&lt;span class="c1"&gt;# Monkey-patch the NDFrame to allow DataFrame.subset(predicate)&lt;/span&gt;
+&lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;core&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;generic&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;NDFrame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subset&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;subset&lt;/span&gt;
+
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;groupby_subset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;groupby&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;predicate&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class="sd"&gt;    Apply subsetting for each group in a pandas GroupBy.&lt;/span&gt;
+
+&lt;span class="sd"&gt;    Roughly equivalent to&lt;/span&gt;
+&lt;span class="sd"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;groupby&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;apply&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;subset&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;predicate&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;args&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;**&lt;/span&gt;&lt;span class="n"&gt;kwargs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="n"&gt;any_group_index&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;next&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;iter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;groupby&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;groups&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;values&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;
+    &lt;span class="n"&gt;orig_n_levels&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;any_group_index&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;levels&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;result_n_levels&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;index&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;levels&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;levels_to_drop&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;list&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;result_n_levels&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;orig_n_levels&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;droplevel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;levels_to_drop&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# And monkey-patch GroupBy to allow GroupBy.subset(predicate)&lt;/span&gt;
+&lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;core&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;groupby&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;GroupBy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;subset&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;groupby_subset&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="python pandas"></category></entry><entry><title>Running multiple instances of Astroid mail</title><link href="https://rasmuse.github.io/multiple-instances-astroid-mail.html" rel="alternate"></link><published>2019-05-19T00:00:00+02:00</published><updated>2019-05-19T00:00:00+02:00</updated><author><name>Rasmus Einarsson</name></author><id>tag:rasmuse.github.io,2019-05-19:/multiple-instances-astroid-mail.html</id><summary type="html">&lt;p&gt;Trying to make an application do something it was not designed to.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I am trying to set up a better email solution for myself. Currently I am using only webmail clients. They are not great, but I honestly find them more attractive than the other turnkey solutions on Linux. In the last years I have tried Thunderbird, Evolution, Geary, Kmail, Trojitá, Nylas N1, Sylpheed, Claws, and maybe others; all easy to get started with, but none of them was pleasant enough for me to keep using. Unsatisfying search interfaces and stupid formatting of sent emails were the most common issues for me.&lt;/p&gt;
 &lt;p&gt;Anyway, the point here is not to rant about email clients. I have been considering for a long time to try &lt;a href="http://www.mutt.org/"&gt;mutt&lt;/a&gt; (or maybe &lt;a href="https://neomutt.org/"&gt;neomutt&lt;/a&gt;?) or &lt;a href="http://astroidmail.github.io/"&gt;Astroid&lt;/a&gt;. Now the plan is:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;a href="http://isync.sourceforge.net/mbsync.html"&gt;mbsync&lt;/a&gt; to sync IMAP accounts to local maildirs.&lt;/li&gt;
@@ -169,28 +247,28 @@ astroid
 
 
 &lt;p&gt;This &lt;code&gt;launch-account&lt;/code&gt; script can now be placed in some convenient location, in my case at &lt;code&gt;~/mail/launch-account&lt;/code&gt;, but it does not matter as long as the &lt;code&gt;accounts&lt;/code&gt; directory is in the same place. Inside the &lt;code&gt;accounts&lt;/code&gt; directory, each account has its own directory where config files etc can be placed. In my case it looks like this:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;├── accounts
-│   ├── personal
-│   │   ├── .config
-│   │   │   └── astroid
-│   │   │       ├── config
-│   │   │       ├── keybindings
-│   │   │       └── poll.sh
-│   │   ├── .mbsyncrc
-│   │   ├── .msmtprc
-│   │   ├── .notmuch-config
-│   │   └── mail
-│   └── work
-│       ├── .config
-│       │   └── astroid
-│       │       ├── config
-│       │       ├── keybindings
-│       │       └── poll.sh
-│       ├── .mbsyncrc
-│       ├── .msmtprc
-│       ├── .notmuch-config
-│       └── mail
-└── launch-account
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="n"&gt;accounts&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="n"&gt;personal&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;└──&lt;/span&gt; &lt;span class="n"&gt;astroid&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="n"&gt;config&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="n"&gt;keybindings&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;└──&lt;/span&gt; &lt;span class="n"&gt;poll&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mbsyncrc&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;msmtprc&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;notmuch&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;└──&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;└──&lt;/span&gt; &lt;span class="k"&gt;work&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;│&lt;/span&gt;   &lt;span class="err"&gt;└──&lt;/span&gt; &lt;span class="n"&gt;astroid&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="n"&gt;config&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="n"&gt;keybindings&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;└──&lt;/span&gt; &lt;span class="n"&gt;poll&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;mbsyncrc&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;msmtprc&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;├──&lt;/span&gt; &lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;notmuch&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;config&lt;/span&gt;
+&lt;span class="err"&gt;│&lt;/span&gt;       &lt;span class="err"&gt;└──&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;
+&lt;span class="err"&gt;└──&lt;/span&gt; &lt;span class="n"&gt;launch&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;account&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 
