@@ -59,11 +59,28 @@
     <time class="published" datetime="2019-06-11T00:00:00+02:00">
       11 June 2019
     </time>
+    <time class="modified" datetime="2019-06-27T00:00:00+02:00">
+      Updated: 27 June 2019
+    </time>
   </header>
 
 
   <main class="entry-content">
-    <p>I was recently teaching some basics in <a href="https://pandas.pydata.org/pandas-docs/stable/">pandas</a> to two colleagues who already know how to work with dataframes in R. They did not seem very happy about my suggested way to chain subset selection operations depending on the values of a DataFrame:</p>
+    <div class="summary">
+<p>
+Update: It turns out this post solves a problem that was already more or less solved. The <code>.loc[selection]</code> allows <code>selection</code> to be a callable. I did not know this but I was <a href="https://github.com/pandas-dev/pandas/issues/26809#issuecomment-501356505">kindly pointed to it</a> when I opened an issue in the pandas issue tracker.
+</p>
+
+<p>
+My suggested <code>subset()</code> methods still allow some more advanced use cases (see below for <code>*args</code> and <code>**kwargs</code>, and <code>GroupBy.subset()</code>), but the basic functionality similar to <code>filter()</code> in R is provided by the simple syntax <code>.loc[callable]</code>.
+</p>
+
+<p>
+See the relevant <a href="https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#different-choices-for-indexing">pandas docs here</a>.
+</p>
+</div>
+
+<p>I was recently teaching some basics in <a href="https://pandas.pydata.org/pandas-docs/stable/">pandas</a> to two colleagues who already know how to work with dataframes in R. They did not seem very happy about my suggested way to chain subset selection operations depending on the values of a DataFrame:</p>
 <div class="highlight"><pre><span></span><span class="n">selected</span> <span class="o">=</span> <span class="p">(</span>
     <span class="n">data</span>
     <span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;column_A&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span>

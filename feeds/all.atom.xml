@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Rasmus Einarsson</title><link href="https://rasmuse.github.io/" rel="alternate"></link><link href="https://rasmuse.github.io/feeds/all.atom.xml" rel="self"></link><id>https://rasmuse.github.io/</id><updated>2019-06-11T00:00:00+02:00</updated><entry><title>Cleaner subset selection in pandas</title><link href="https://rasmuse.github.io/pandas-subset.html" rel="alternate"></link><published>2019-06-11T00:00:00+02:00</published><updated>2019-06-11T00:00:00+02:00</updated><author><name>Rasmus Einarsson</name></author><id>tag:rasmuse.github.io,2019-06-11:/pandas-subset.html</id><summary type="html">&lt;p&gt;Monkey-patching two subset() methods in pandas.&lt;/p&gt;</summary><content type="html">&lt;p&gt;I was recently teaching some basics in &lt;a href="https://pandas.pydata.org/pandas-docs/stable/"&gt;pandas&lt;/a&gt; to two colleagues who already know how to work with dataframes in R. They did not seem very happy about my suggested way to chain subset selection operations depending on the values of a DataFrame:&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Rasmus Einarsson</title><link href="https://rasmuse.github.io/" rel="alternate"></link><link href="https://rasmuse.github.io/feeds/all.atom.xml" rel="self"></link><id>https://rasmuse.github.io/</id><updated>2019-06-27T00:00:00+02:00</updated><entry><title>Cleaner subset selection in pandas</title><link href="https://rasmuse.github.io/pandas-subset.html" rel="alternate"></link><published>2019-06-11T00:00:00+02:00</published><updated>2019-06-27T00:00:00+02:00</updated><author><name>Rasmus Einarsson</name></author><id>tag:rasmuse.github.io,2019-06-11:/pandas-subset.html</id><summary type="html">&lt;p&gt;Monkey-patching two subset() methods in pandas.&lt;/p&gt;</summary><content type="html">&lt;div class="summary"&gt;
+&lt;p&gt;
+Update: It turns out this post solves a problem that was already more or less solved. The &lt;code&gt;.loc[selection]&lt;/code&gt; allows &lt;code&gt;selection&lt;/code&gt; to be a callable. I did not know this but I was &lt;a href="https://github.com/pandas-dev/pandas/issues/26809#issuecomment-501356505"&gt;kindly pointed to it&lt;/a&gt; when I opened an issue in the pandas issue tracker.
+&lt;/p&gt;
+
+&lt;p&gt;
+My suggested &lt;code&gt;subset()&lt;/code&gt; methods still allow some more advanced use cases (see below for &lt;code&gt;*args&lt;/code&gt; and &lt;code&gt;**kwargs&lt;/code&gt;, and &lt;code&gt;GroupBy.subset()&lt;/code&gt;), but the basic functionality similar to &lt;code&gt;filter()&lt;/code&gt; in R is provided by the simple syntax &lt;code&gt;.loc[callable]&lt;/code&gt;.
+&lt;/p&gt;
+
+&lt;p&gt;
+See the relevant &lt;a href="https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#different-choices-for-indexing"&gt;pandas docs here&lt;/a&gt;.
+&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;p&gt;I was recently teaching some basics in &lt;a href="https://pandas.pydata.org/pandas-docs/stable/"&gt;pandas&lt;/a&gt; to two colleagues who already know how to work with dataframes in R. They did not seem very happy about my suggested way to chain subset selection operations depending on the values of a DataFrame:&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;selected&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="n"&gt;data&lt;/span&gt;
     &lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pipe&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;column_A&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
