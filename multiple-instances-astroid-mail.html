@@ -233,28 +233,28 @@ astroid
 
 
 <p>This <code>launch-account</code> script can now be placed in some convenient location, in my case at <code>~/mail/launch-account</code>, but it does not matter as long as the <code>accounts</code> directory is in the same place. Inside the <code>accounts</code> directory, each account has its own directory where config files etc can be placed. In my case it looks like this:</p>
-<div class="highlight"><pre><span></span><span class="err">├──</span> <span class="n">accounts</span>
-<span class="err">│</span>   <span class="err">├──</span> <span class="n">personal</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="p">.</span><span class="n">config</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">astroid</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">│</span>       <span class="err">├──</span> <span class="n">config</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">│</span>       <span class="err">├──</span> <span class="n">keybindings</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">│</span>       <span class="err">└──</span> <span class="n">poll</span><span class="p">.</span><span class="n">sh</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="p">.</span><span class="n">mbsyncrc</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="p">.</span><span class="n">msmtprc</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">├──</span> <span class="p">.</span><span class="n">notmuch</span><span class="o">-</span><span class="n">config</span>
-<span class="err">│</span>   <span class="err">│</span>   <span class="err">└──</span> <span class="n">mail</span>
-<span class="err">│</span>   <span class="err">└──</span> <span class="k">work</span>
-<span class="err">│</span>       <span class="err">├──</span> <span class="p">.</span><span class="n">config</span>
-<span class="err">│</span>       <span class="err">│</span>   <span class="err">└──</span> <span class="n">astroid</span>
-<span class="err">│</span>       <span class="err">│</span>       <span class="err">├──</span> <span class="n">config</span>
-<span class="err">│</span>       <span class="err">│</span>       <span class="err">├──</span> <span class="n">keybindings</span>
-<span class="err">│</span>       <span class="err">│</span>       <span class="err">└──</span> <span class="n">poll</span><span class="p">.</span><span class="n">sh</span>
-<span class="err">│</span>       <span class="err">├──</span> <span class="p">.</span><span class="n">mbsyncrc</span>
-<span class="err">│</span>       <span class="err">├──</span> <span class="p">.</span><span class="n">msmtprc</span>
-<span class="err">│</span>       <span class="err">├──</span> <span class="p">.</span><span class="n">notmuch</span><span class="o">-</span><span class="n">config</span>
-<span class="err">│</span>       <span class="err">└──</span> <span class="n">mail</span>
-<span class="err">└──</span> <span class="n">launch</span><span class="o">-</span><span class="n">account</span>
+<div class="highlight"><pre><span></span>├── accounts
+│   ├── personal
+│   │   ├── .config
+│   │   │   └── astroid
+│   │   │       ├── config
+│   │   │       ├── keybindings
+│   │   │       └── poll.sh
+│   │   ├── .mbsyncrc
+│   │   ├── .msmtprc
+│   │   ├── .notmuch-config
+│   │   └── mail
+│   └── work
+│       ├── .config
+│       │   └── astroid
+│       │       ├── config
+│       │       ├── keybindings
+│       │       └── poll.sh
+│       ├── .mbsyncrc
+│       ├── .msmtprc
+│       ├── .notmuch-config
+│       └── mail
+└── launch-account
 </pre></div>
 
 

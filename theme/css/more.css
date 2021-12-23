@@ -53,6 +53,10 @@ div.summary p:last-child {
 	max-width: 100%;
 }
 
+#content main img {
+	max-width: 100%;
+}
+
 body {
 	font-size: 1.6em;
 }
